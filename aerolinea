@@ -1,0 +1,142 @@
+import java.util.*;
+
+public class Aerolinea {
+
+    public static void main(String[] args){
+        Scanner sc = new Scanner(System.in);
+
+        Hashtable<String, Integer> ciudades = new Hashtable<>();
+        Hashtable<String, int[]> dijkstra = new Hashtable<>();
+
+        int des = sc.nextInt();
+        int valor = 0;
+        StringBuilder buffer = new StringBuilder();
+        for (int i = 0; i < des; i++){
+            String fuente = sc.next();
+            String destino = sc.next();
+            Integer a = ciudades.putIfAbsent(fuente, valor);
+            if (a == null) valor++;
+            a = ciudades.putIfAbsent(destino, valor);
+            if (a == null) valor++;
+            buffer.append(fuente).append(" ").append(destino).append("\n");
+        }
+
+        Grafo grafo = new Grafo(ciudades.size());
+        Scanner a = new Scanner(buffer.toString());
+
+        for (int i = 0; i < des; i++) {
+            String fuente = a.next();
+            String destino = a.next();
+            grafo.agregarArco(ciudades.get(fuente), ciudades.get(destino) , 1);
+        }
+
+        des = sc.nextInt();
+        for (int i = 0; i < des; i++) {
+            String fuente = sc.next();
+            String destino = sc.next();
+            if (ciudades.containsKey(destino) && ciudades.containsKey(fuente)){
+                int intB = ciudades.get(destino);
+                int[] camino = dijkstra.get(fuente);
+                if (camino == null) {
+                    int[] aux = Dijkstra.caminoMasCorto(grafo, ciudades.get(fuente));
+                    dijkstra.put(fuente, aux);
+                    camino = aux;
+                }
+                if (Integer.MAX_VALUE == camino[intB]) System.out.println("No hay rutas de " + fuente + " a " + destino);
+                else System.out.println("De " + fuente + " a " + destino + " se puede llegar en " + camino[intB] + " vuelo(s) ");
+            }
+            else System.out.println("No hay rutas de " + fuente + " a " + destino);
+        }
+
+    }
+
+}
+
+class Arco {
+    int nodo_fin;
+    int peso;
+
+    public Arco(int nodo_fin, int peso) {
+        this.nodo_fin = nodo_fin;
+        this.peso = peso;
+    }
+}
+
+class Grafo {
+    int numero_nodos;
+    List<List<Arco>> arcos;
+
+    public Grafo(int numero_nodos) {
+
+        this.numero_nodos = numero_nodos;
+        arcos = new ArrayList<>();
+
+        for (int i = 0; i < numero_nodos; i++) {
+            arcos.add(new ArrayList());
+        }
+    }
+
+    public Grafo(){
+        arcos = new ArrayList<>();
+    }
+
+    public void agregarArco(int nodo_inicio, int nodo_fin, int peso) {
+        arcos.get(nodo_inicio).add(new Arco(nodo_fin, peso));
+    }
+
+    public List<Arco> adyacentes(int nodo_inicio) {
+        return arcos.get(nodo_inicio);
+    }
+}
+
+class Dijkstra {
+
+    static class Par implements Comparable<Par> {
+        int nodo;
+        int prioridad;
+
+        Par(int nodo, int prioridad) {
+
+            this.nodo = nodo;
+            this.prioridad = prioridad;
+        }
+
+        public int compareTo(Par p) {
+
+            if (prioridad < p.prioridad) return -1;
+            if (prioridad > p.prioridad) return +1;
+            return 0;
+        }
+    }
+
+    static int[] caminoMasCorto(Grafo g, int inicio) {
+
+        PriorityQueue<Par> pq = new PriorityQueue();
+        int [] distancias = new int[g.numero_nodos];
+
+        for (int i = 0; i < g.numero_nodos; i++) {
+            distancias[i] = Integer.MAX_VALUE;
+        }
+        distancias[inicio] = 0;
+        pq.add(new Par(inicio, 0));
+
+        while (!pq.isEmpty()) {
+            Par p = pq.poll();
+
+            if (p.prioridad > distancias[p.nodo]) {
+                continue;
+            }
+            for (Arco arco : g.adyacentes(p.nodo)) {
+                if (distancias[arco.nodo_fin] > distancias[p.nodo]+arco.peso) {
+                    distancias[arco.nodo_fin] = distancias[p.nodo]+arco.peso;
+                    pq.add(new Par(arco.nodo_fin, distancias[arco.nodo_fin]));
+                }
+            }
+        }
+        return distancias;
+    }
+}
+
+
+
+
